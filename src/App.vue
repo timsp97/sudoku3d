@@ -3,15 +3,18 @@
     <header>
       <span>SudoCube</span>
     </header>
-    Use touch or press control or middle mouse key to rotate the cube.
+    <span style="width: 70vw; display:block; margin:auto;">Use touch or press control or middle mouse key to rotate the cube.</span>
     <img @click="enableFullscreen" class="fixed" src="https://image.flaticon.com/icons/svg/0/871.svg">
-    <img @mouseover="isMenu = true" @mouseout="isMenu = false" class="menu fixed left" src="https://image.flaticon.com/icons/svg/126/126472.svg">
+    <img @click="isColor = !isColor" class="fixed left" src="https://image.flaticon.com/icons/svg/67/67745.svg">
+    <img @click="isHighlighting = !isHighlighting" class="fixed left lower" src="https://image.flaticon.com/icons/svg/320/320161.svg">
+    <!--<img @click="isMenu = true" class="menu fixed left" src="https://image.flaticon.com/icons/svg/126/126472.svg">
     <div class="menu-dial" v-if="isMenu">
+      <h1>SudoCube - Einstellungen</h1>
       <span><img @click="isColor = !isColor" src="https://image.flaticon.com/icons/svg/67/67745.svg">Farbe</span>
-    </div>
+    </div> TODO add settings -->
 
     <div class="container">
-      <Cube :sudoku="sudoku" :isColor="isColor"></Cube>
+      <Cube :sudoku="sudoku" :isColor="isColor" :isHighlighting="isHighlighting"></Cube>
     </div>
     <div class="buttons">
       <button @click="rotateCube({x: 0, y: 0})">FRONT</button>
@@ -34,10 +37,11 @@ export default {
     return {
       user: "",
       isColor: false,
+      isHighlighting: true,
       isMenu: false,
       //sudoku: [1,2,3,4,5,6,7,8,9 , 6,7,8,9,1,2,3,4,5 , 5,9,4,8,3,7,2,6,1],
-      sudoku: [1,2,3,4,5,6,7,8,9 , 6,7,8,9,0,2,3,4,5 , 5,9,4,8,3,7,2,6,1],
-      //sudoku: [1,0,3,0,5,6,0,8,9 , 6,7,0,0,1,2,0,0,5 , 0,9,4,0,0,0,2,0,1],
+      //sudoku: [1,2,3,4,5,6,7,8,9 , 6,7,8,9,0,2,3,4,5 , 5,9,4,8,3,7,2,6,1],
+      sudoku: [1,0,3,0,5,6,0,8,9 , 6,7,0,0,1,2,0,0,5 , 0,9,4,0,0,0,2,0,1],
     }
   },
   components: {
@@ -117,10 +121,22 @@ img.fixed {
   width: 50px;
   height: 50px;
   z-index: 1000;
+  transition: transform 0.5s;
+  transform: scale(0.8);
 }
+
+img.fixed:hover {
+  transform: scale(1);
+}
+
+
 
 .left {
   left: 0px;
+}
+
+.lower {
+  top: 50px !important;
 }
 
 .container {
@@ -129,21 +145,22 @@ img.fixed {
 
 .buttons {
   position: fixed;
-  top: 90vh;
+  bottom: 10px;
   left: 0px;
   width: 100%;
-  height: 10vh;
 }
 
 .buttons button {
+  padding: 5px;
+  min-height: 50px;
   width: 13%;
-  height: 70%;
   background-color: #333;
   color: #EEE;
   border: none;
   font-size: 1.2em;
   border-radius: 10px;
 }
+
 
 .menu {
   transition: transform 0.5s;
@@ -155,11 +172,12 @@ img.fixed {
 
 .menu-dial {
   position: fixed;
-  top: 60px;
-  left: 10px;
-  width: 200px;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
   background-color: white;
-  box-shadow: 0px 0px 1px 2px #333;
   text-align: left;
 }
 

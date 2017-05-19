@@ -47,7 +47,8 @@ export default {
   props: {
     text: String,
     sudoku: Array,
-    isColor: Boolean
+    isColor: Boolean,
+    isHighlighting: Boolean
   },
   methods: {
     restart() {
@@ -58,6 +59,8 @@ export default {
       }
     },
     isForeground(id) {
+      if(!this.isHighlighting) return true;
+
       var active = this.activeOnSide[id];
       var side = 1 << (5-this.side);
 
@@ -132,7 +135,8 @@ export default {
     },
     btnClick(val) {
       this.showKeyboard = false;
-      if(this.active >= 0 && val > 0) {
+      if(val == 'CLR') val = 0;
+      if(this.active >= 0 && val >= 0) {
         if(!this.field[this.active].fixed)
           this.field[this.active].val = val;
           this.checkSudoku()

@@ -74,5 +74,8 @@ export default {
 }
 .fixed {
   border: none !important;
+  cursor: default;
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 8px !important;
 }
 </style>

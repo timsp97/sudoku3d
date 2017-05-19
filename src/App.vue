@@ -4,17 +4,14 @@
       <span>SudoCube</span>
     </header>
     Use touch or press control or middle mouse key to rotate the cube.
-    <span @click="enableFullscreen" class="fixed">
-      <img src="https://image.flaticon.com/icons/svg/0/871.svg">
-    </span>
-
+    <img @click="enableFullscreen" class="fixed" src="https://image.flaticon.com/icons/svg/0/871.svg">
     <img @mouseover="isMenu = true" @mouseout="isMenu = false" class="menu fixed left" src="https://image.flaticon.com/icons/svg/126/126472.svg">
     <div class="menu-dial" v-if="isMenu">
       <span><img @click="isColor = !isColor" src="https://image.flaticon.com/icons/svg/67/67745.svg">Farbe</span>
     </div>
 
     <div class="container">
-      <Cube :text="user" :field="field" :isColor="isColor"></Cube>
+      <Cube :sudoku="sudoku" :isColor="isColor"></Cube>
     </div>
     <div class="buttons">
       <button @click="rotateCube({x: 0, y: 0})">FRONT</button>
@@ -39,7 +36,8 @@ export default {
       isColor: false,
       isMenu: false,
       //sudoku: [1,2,3,4,5,6,7,8,9 , 6,7,8,9,1,2,3,4,5 , 5,9,4,8,3,7,2,6,1],
-      sudoku: [1,0,3,0,5,6,0,8,9 , 6,7,0,0,1,2,0,0,5 , 0,9,4,0,0,0,2,0,1],
+      sudoku: [1,2,3,4,5,6,7,8,9 , 6,7,8,9,0,2,3,4,5 , 5,9,4,8,3,7,2,6,1],
+      //sudoku: [1,0,3,0,5,6,0,8,9 , 6,7,0,0,1,2,0,0,5 , 0,9,4,0,0,0,2,0,1],
     }
   },
   components: {
@@ -61,17 +59,6 @@ export default {
     },
     rotateCube(arg) {
       this.$bus.$emit('rotate', arg);
-    }
-  },
-  computed: {
-    field() {
-      var f = [];
-
-      for(var i = 0; i < this.sudoku.length; i++) {
-        f.push({id: i, val: this.sudoku[i]});
-      }
-
-      return f;
     }
   },
   created() {
@@ -122,7 +109,7 @@ header span {
 }
 
 
-.fixed {
+img.fixed {
   position: fixed;
   padding: 5px;
   right: 0px;
@@ -137,12 +124,7 @@ header span {
 }
 
 .container {
-  position: fixed;
-  top: calc(50vh - 100px);
-  left: calc(50vw - 100px);
-  width: 200px;
-  height: 200px;
-  perspective: 400px;
+  width: 100%;
 }
 
 .buttons {

@@ -1,6 +1,6 @@
 <template>
-  <div class="number" :class="{shadow: isShadow}" @click="click">
-    {{ getVal(val) }}
+  <div class="number" :style="position" :class="{active: active == data.id, fixed: data.fixed}" @click="click">
+    {{ getVal(data.val) }}
   </div>
 </template>
 
@@ -10,11 +10,12 @@ import Cell from  "./Cell.vue"
 export default {
   data: function() {
     return {
-      isShadow: false
+
     }
   },
   props: {
-    val: Number,
+    active: Number,
+    data: Object,
     transform: Object
   },
   computed: {
@@ -24,11 +25,27 @@ export default {
       var y = this.transform.x;
       return 'transform: rotateX(' + x +
               'deg) rotateY(' + y + 'deg)'
+    },
+    position() {
+      var x = (this.data.id % 3)*64 + 18;
+      var y = Math.floor(this.data.id/3)*64 - Math.floor(this.data.id/9)*64*3 + 18;
+      var z = Math.floor(this.data.id/9)*64 - 64;
+      var rotX = this.transform.y;
+      var rotY = -this.transform.x;
+
+      return 'transform: translateX(' + x + 'px) ' +
+              'translateY(' + y + 'px) ' +
+              'translateZ(' + z + 'px) ' +
+              'rotateY(' + rotY + 'deg) ' +
+              'rotateX(' + rotX + 'deg)';
     }
   },
   methods: {
     click() {
-      this.isShadow = !this.isShadow;
+      if(this.active == this.data.id)
+        this.$bus.$emit('active', -1);
+      else
+        this.$bus.$emit('active', this.data.id);
     },
     getVal(val) {
       if(val == 0) return "·";
@@ -51,8 +68,11 @@ export default {
   border-radius: 100%;
   border: 2px solid #AAA;
 }
-.shadow {
+.active {
   border-radius: 100%;
   background-color: rgba(0,128,255, 0.75);
+}
+.fixed {
+  border: none !important;
 }
 </style>

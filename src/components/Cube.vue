@@ -1,17 +1,25 @@
 <template>
   <div>
-    <div id="cube" :style="styleStr" :class="{transition: isAnimating}">
-      <figure class="front" :class="{color: isColor}"></figure>
-      <figure class="back" :class="{color: isColor}"></figure>
-      <figure class="right" :class="{color: isColor}"></figure>
-      <figure class="left" :class="{color: isColor}"></figure>
-      <figure class="top" :class="{color: isColor}"></figure>
-      <figure class="bottom" :class="{color: isColor}"></figure>
+    <div id="cube-container">
+      <div id="cube" :style="styleStr" :class="{transition: isAnimating}">
+        <figure class="front" :class="{color: isColor}"></figure>
+        <figure class="back" :class="{color: isColor}"></figure>
+        <figure class="right" :class="{color: isColor}"></figure>
+        <figure class="left" :class="{color: isColor}"></figure>
+        <figure class="top" :class="{color: isColor}"></figure>
+        <figure class="bottom" :class="{color: isColor}"></figure>
 
-      <Cell v-for="cell in field" :val="cell.val" :style="position(cell.id)" :transform="transform"
-            :class="{transition: isAnimating, background: !isForeground(cell.id)}"></Cell>
+        <Cell v-for="cell in field" :data="cell" :transform="transform" :active="active"
+              :class="{transition: isAnimating, background: !isForeground(cell.id)}"></Cell>
+      </div>
     </div>
 
+    <div id="keyboard" v-if="showKeyboard">
+      <button v-for="i in [1,2,3,4,5,6,7,8,9,'CLR','X']"
+              :class="{cancel: !(i < 10)}" @click="btnClick(i)">
+        {{ i }}
+      </button>
+    </div>
   </div>
 </template>
 
@@ -27,6 +35,9 @@ export default {
       isTouch: false,
       isAnimating: false,
       side: 0,
+      active: -1,
+      showKeyboard: false,
+      field: [],
       // front back left right top bottom
       activeOnSide: [0b011010,0b010010,0b010110 , 0b011000,0b010000,0b010100 , 0b011001,0b010001,0b010101,
                      0b001010,0b000010,0b000110 , 0b001000,0b000000,0b000100 , 0b001001,0b000001,0b000101,
@@ -35,10 +46,17 @@ export default {
   },
   props: {
     text: String,
-    field: Array,
+    sudoku: Array,
     isColor: Boolean
   },
   methods: {
+    restart() {
+      this.field = [];
+      // Generate field object arrray
+      for(var i = 0; i < this.sudoku.length; i++) {
+        this.field.push({id: i, val: this.sudoku[i], fixed: (this.sudoku[i]!=0)});
+      }
+    },
     isForeground(id) {
       var active = this.activeOnSide[id];
       var side = 1 << (5-this.side);
@@ -98,25 +116,74 @@ export default {
         else if(e.key == "ArrowUp") this.transform.y -= 5;
         else if(e.key == "ArrowDown") this.transform.y += 5;
       } else {
-        // TODO implement cursor
-        // TODO add keyboard input
+        if(e.key == "ArrowLeft") this.active--;
+        else if(e.key == "ArrowRight") this.active++;
+        else if(e.key == "ArrowUp") this.active -= 3;
+        else if(e.key == "ArrowDown") this.active += 3;
+
+        if(this.active < 0) this.active += 27;
+        if(this.active >= 27) this.active -= 27;
+      }
+      if(e.keyCode >= 49 && e.keyCode <= 57) {
+        // Number
+        var num = e.keyCode - 48;
+        this.btnClick(num);
       }
     },
-    keyUp() {
-
+    btnClick(val) {
+      this.showKeyboard = false;
+      if(this.active >= 0 && val > 0) {
+        if(!this.field[this.active].fixed)
+          this.field[this.active].val = val;
+          this.checkSudoku()
+      }
     },
-    position(id) {
-      var x = (id % 3)*64 + 18;
-      var y = Math.floor(id/3)*64 - Math.floor(id/9)*64*3 + 18;
-      var z = Math.floor(id/9)*64 - 64;
-      var rotX = this.transform.y;
-      var rotY = -this.transform.x;
+    checkSudoku() {
+      // Convert to "normal" sudoku
+      var a = [], b = [], c = [];
+      for(var i = 0; i < 9; i++) {
+        a.push(this.field[i].val);
+        b.push(this.field[i+9].val);
+        c.push(this.field[i+18].val);
+      }
+      var sudoku = a.concat(b).concat(c);
+      sudoku.push(...a.slice(3,9), ...a.slice(0,3));
+      sudoku.push(...b.slice(3,9), ...b.slice(0,3));
+      sudoku.push(...c.slice(3,9), ...c.slice(0,3));
+      sudoku.push(...a.slice(6,9), ...a.slice(0,6));
+      sudoku.push(...b.slice(6,9), ...b.slice(0,6));
+      sudoku.push(...c.slice(6,9), ...c.slice(0,6));
 
-      return 'transform: translateX(' + x + 'px) ' +
-              'translateY(' + y + 'px) ' +
-              'translateZ(' + z + 'px) ' +
-              'rotateY(' + rotY + 'deg) ' +
-              'rotateX(' + rotX + 'deg)';
+      if(this.isSolvedSudoku(sudoku)) {
+        // Won
+        this.isAnimating = true;
+        this.transform = {x: 7200, y: 7200};
+        window.setTimeout(() => {alert("Herzlichen Glückwunsch, Sie haben den SudoCube gelöst.")}, 1000);
+      }
+    },
+    isSolvedSudoku(sudoku) {
+      for(var i = 0; i < 9; i++) {
+        var row = [0], col = [0], block = [0];
+        for(var j = 0; j < 9; j++) {
+          var r = sudoku[9*i + j];
+          if(!row.includes(r)) row.push(r);
+
+          var c = sudoku[i + 9*j];
+          if(!col.includes(c)) col.push(c);
+          var rowOfBlock = Math.floor(i/3)*3;
+          var rowInBlock = Math.floor(j/3);
+          var colOfBlock = (i%3)*3;
+          var colInBlock = j%3;
+          var cell = (rowOfBlock+rowInBlock)*9 + colOfBlock+colInBlock;
+          var b = sudoku[cell];
+          if(!block.includes(b)) block.push(b);
+        }
+        if(row.length != 10 || col.length != 10 || block.length != 10) {
+          console.log("row=" + row.join(",") + ", col:" + col.join(",") + ", block:" + block.join(","));
+          return false;
+        }
+      }
+      return true;
     }
   },
   computed: {
@@ -132,7 +199,19 @@ export default {
       this.isAnimating = true;
       this.transform = transform;
       console.log("centered");
-    })
+    });
+    this.$bus.$on('active', (id) => {
+      if(id == -1) {
+        this.active = id;
+      } else {
+        if(!this.field[id].fixed) {
+          this.active = id;
+          this.showKeyboard = true;
+        }
+      }
+    });
+
+    this.restart();
   },
   mounted: function() {
     window.addEventListener("mousemove", this.mouseMove, false);
@@ -142,18 +221,11 @@ export default {
     window.addEventListener("touchend", this.touchEnd, false);
 
     window.addEventListener("keydown", this.keyDown, false);
-    window.addEventListener("keyup", this.keyUp, false);
   },
   components: {
     Cell
   },
   watch: {
-    /*<button @click="rotateCube({x: 0, y: 0})">FRONT</button>
-    <button @click="rotateCube({y: 0, x: 90})">LEFT</button>
-    <button @click="rotateCube({y: 0, x: -90})">RIGHT</button>
-    <button @click="rotateCube({y: 0, x: 180})">BACK</button>
-    <button @click="rotateCube({y: 90, x: 0})">TOP</button>
-    <button @click="rotateCube({y: -90, x: 0})">BOTTOM</button>*/
     transform: {
       handler: function(val) {
         var yDeg = val.y % 360;
@@ -186,6 +258,16 @@ export default {
 </script>
 
 <style scoped>
+
+#cube-container {
+  position: fixed;
+  top: calc(50vh - 100px);
+  left: calc(50vw - 100px);
+  width: 200px;
+  height: 200px;
+  perspective: 400px;
+}
+
 #cube {
   width: 100%;
   height: 100%;
@@ -226,6 +308,41 @@ export default {
 }
 .background {
   opacity: 0.3;
+}
+
+#keyboard {
+  position: fixed;
+  top: calc(50vh - 110px);
+  left: calc(50vw - 110px);
+  width: 220px;
+  height: 220px;
+  z-index: 900;
+  border-radius: 20px;
+}
+/*#keyboard::before {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  content: " - Remember this";
+  background-color: rgba(0, 0, 0, 0.6);
+}*/
+
+#keyboard button {
+  width: 60px;
+  height: 60px;
+  margin: 6px;
+  background-color: #333;
+  color: #EEE;
+  border: none;
+  font-size: 1.5em;
+  border-radius: 100%;
+}
+
+#keyboard .cancel {
+  background-color: #888;
 }
 
 </style>

@@ -1,35 +1,39 @@
 <template>
-  <div class="container">
-    <Cell :text="user"></Cell>
+  <div>
+    <div class="control" @click="">
+
+    </div>
+    <div class="container">
+
+    </div>
   </div>
 </template>
 
 <script>
-import Cell from "./Cell.vue"
+import Cube from "./Cube.vue"
 
 export default {
   data: function() {
     return {
-
+      sudoku: [1,2,3,4,5,6,7,8,9 , 6,7,8,9,1,2,3,4,5 , 5,9,4,8,3,7,2,6,1],
+      //sudoku: [1,0,3,0,5,6,0,8,9 , 6,7,0,0,1,2,0,0,5 , 0,9,4,0,0,0,2,0,1],
+      field: []
     }
   },
   props: {
-    user: String
+    user: String,
+    isColor: Boolean
   },
   components: {
-    Cell
+    Cube
+  },
+  created() {
+    for(var i = 0; i < this.sudoku.length; i++) {
+      this.field.push({id: i, val: this.sudoku[i]});
+    }
   }
 }
 </script>
 
 <style scoped>
-.container {
-  position: fixed;
-  top: calc(50vh - 100px);
-  left: calc(50vw - 100px);
-  width: 200px;
-  height: 200px;
-  position: relative;
-  perspective: 1000px;
-}
 </style>

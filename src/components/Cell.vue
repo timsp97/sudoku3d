@@ -1,48 +1,58 @@
 <template>
-  <div id="cube">
-    <figure class="front">{{text}}</figure>
-    <figure class="back">{{text}}</figure>
-    <figure class="right">{{text}}</figure>
-    <figure class="left">{{text}}</figure>
-    <figure class="top">{{text}}</figure>
-    <figure class="bottom">{{text}}</figure>
+  <div class="number" :class="{shadow: isShadow}" @click="click">
+    {{ getVal(val) }}
   </div>
 </template>
 
 <script>
+import Cell from  "./Cell.vue"
+
 export default {
   data: function() {
     return {
-
+      isShadow: false
     }
   },
   props: {
-    text: String
+    val: Number,
+    transform: Object
+  },
+  computed: {
+    styleStr() {
+      return "";
+      var x = this.transform.y;
+      var y = this.transform.x;
+      return 'transform: rotateX(' + x +
+              'deg) rotateY(' + y + 'deg)'
+    }
+  },
+  methods: {
+    click() {
+      this.isShadow = !this.isShadow;
+    },
+    getVal(val) {
+      if(val == 0) return "·";
+      return val;
+    }
   }
 }
 </script>
 
 <style scoped>
-#cube {
-width: 100%;
-height: 100%;
-position: absolute;
-transform-style: preserve-3d;
+.number {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 38px;
+  border: 2px solid rgba(0, 0, 0, 0);
 }
-
-#cube figure {
-margin: 0;
-width: 196px;
-height: 196px;
-display: block;
-position: absolute;
-border: 2px solid black;
+.number:hover {
+  border-radius: 100%;
+  border: 2px solid #AAA;
 }
-
-#cube .front  { transform: rotateY(   0deg ) translateZ( 100px ); }
-#cube .back   { transform: rotateX( 180deg ) translateZ( 100px ); }
-#cube .right  { transform: rotateY(  90deg ) translateZ( 100px ); }
-#cube .left   { transform: rotateY( -90deg ) translateZ( 100px ); }
-#cube .top    { transform: rotateX(  90deg ) translateZ( 100px ); }
-#cube .bottom { transform: rotateX( -90deg ) translateZ( 100px ); }
+.shadow {
+  border-radius: 100%;
+  background-color: rgba(0,128,255, 0.75);
+}
 </style>

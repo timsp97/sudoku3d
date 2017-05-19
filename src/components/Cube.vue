@@ -42,7 +42,7 @@ export default {
     isForeground(id) {
       var active = this.activeOnSide[id];
       var side = 1 << (5-this.side);
-      console.log("side: " + this.dec2bin(side) + ", active: " + this.dec2bin(active) + ", true:" + this.dec2bin(side & active));
+
       if((side & active) > 0) return true;
       return false;
     },
@@ -90,6 +90,21 @@ export default {
     touchEnd() {
       this.isTouch = false;
     },
+    keyDown(e) {
+      if(e.ctrlKey) {
+        this.isAnimating = false;
+        if(e.key == "ArrowLeft") this.transform.x -= 5;
+        else if(e.key == "ArrowRight") this.transform.x += 5;
+        else if(e.key == "ArrowUp") this.transform.y -= 5;
+        else if(e.key == "ArrowDown") this.transform.y += 5;
+      } else {
+        // TODO implement cursor
+        // TODO add keyboard input
+      }
+    },
+    keyUp() {
+
+    },
     position(id) {
       var x = (id % 3)*64 + 18;
       var y = Math.floor(id/3)*64 - Math.floor(id/9)*64*3 + 18;
@@ -125,6 +140,9 @@ export default {
     window.addEventListener("touchmove", this.touchMove, false);
     window.addEventListener("touchstart", this.touchStart, false);
     window.addEventListener("touchend", this.touchEnd, false);
+
+    window.addEventListener("keydown", this.keyDown, false);
+    window.addEventListener("keyup", this.keyUp, false);
   },
   components: {
     Cell
@@ -143,22 +161,18 @@ export default {
 
         if(yDeg < 135 && yDeg >= 45) {
           // top
-          console.log("side: top");
           this.side = 4;
         } else if(yDeg < 315 && yDeg >= 225) {
           // bottom
-          console.log("side: bottom");
           this.side = 5;
         } else {
           var off = 0;
           if(yDeg < 225 && yDeg >= 135) off = 2;
           var xDeg = val.x % 360;
           if(xDeg < 0) xDeg += 360;
-          //console.log("x: " + xDeg + ", off: " + off);
 
           for(var i = 0; i < 4; i++) {
             if(xDeg < 90*i+45 && xDeg >= 90*i-45) {
-              console.log("side: " + ["front","left","back","right"][(i+off)%4]);
               this.side = [0,2,1,3][(i+off)%4];
               break;
             }
